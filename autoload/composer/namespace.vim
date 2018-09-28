@@ -208,7 +208,7 @@ function! composer#namespace#use_via_classmap(sort) abort
   endif
 
   let result = json_decode(output)
-  let Use = {result -> composer#namespace#use(a:sort, '\'.result)}
+  let Use = {class -> composer#namespace#use(a:sort, '\'.class)}
 
   if len(result) > 1
     call fzf#run(fzf#wrap({ 'source': result, 'sink': Use }))
