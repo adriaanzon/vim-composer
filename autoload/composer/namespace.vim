@@ -26,6 +26,8 @@ function! composer#namespace#use(sort, ...) abort
 
   let line .= ';'
 
+  normal! m'
+
   if search('^use\_s\_[[:alnum:][:blank:]\\,_]\+;', 'wbe') > 0
     put=line
   elseif search('^\s*namespace\_s\_[[:alnum:]\\_]\+;', 'wbe') > 0
@@ -187,6 +189,34 @@ function! composer#namespace#class_at_cursor() abort
   endif
 
   return class
+endfunction
+
+function! composer#namespace#use_via_classmap(sort) abort
+  let project = composer#project()
+  let autoload = project.vendor_dir('autoload.php')
+
+  if !project.has_file(autoload)
+    call s:throw('autoload.php not found. Run composer install.')
+  endif
+
+  let s = 'echo json_encode(array_values(array_filter(array_keys((require("' . autoload . '"))->getClassMap()), function ($fqcn) { return $_SERVER["argv"][1] === last(explode("\\", $fqcn)); })));'
+
+  let output = system('php -r ' . shellescape(s) . ' -- ' . shellescape(composer#namespace#class_at_cursor()))
+
+  if v:shell_error != 0
+    call s:throw('Command exited with code %d', v:shell_error)
+  endif
+
+  let result = json_decode(output)
+  let Use = {result -> composer#namespace#use(a:sort, '\'.result)}
+
+  if len(result) > 1
+    call fzf#run(fzf#wrap({ 'source': result, 'sink': Use }))
+  elseif len(result) == 1
+    call Use(result[0])
+  else
+    call s:throw('Class not found')
+  endif
 endfunction
 
 ""

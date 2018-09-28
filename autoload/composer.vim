@@ -346,7 +346,7 @@ function! composer#buffer_setup() abort
 
     ""
     " Insert a use statement for the class/interface/trait under the cursor.
-    nnoremap <buffer> <Plug>(composer-use) :<C-u>execute composer#namespace#use(0)<CR>
+    nnoremap <buffer> <Plug>(composer-use) :<C-u>execute composer#namespace#use_via_classmap(0)<CR>
   endif
 
   silent doautocmd User Composer
